@@ -16,7 +16,7 @@ export function addEventListeners() {
 }
 
 export async function home_page() {
-	let html = `<h1>Enjoy Shopping!</h1>`;
+	let html = `<h1>Look what's all in stock!</h1>`;
 	let products;
 	try {
 		products = await getProductList();

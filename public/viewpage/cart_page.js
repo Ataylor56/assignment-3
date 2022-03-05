@@ -23,6 +23,7 @@ export async function cart_page() {
 	let html = '';
 
 	if (!cart || cart.getTotalQty() == 0) {
+		//changed arrangement to allow for continue shopping button to be rendered on an empty cart screen
 		html += `
         <div class="">
         <br>
