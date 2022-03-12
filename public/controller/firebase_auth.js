@@ -1,16 +1,25 @@
-import { getAuth, signOut, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js';
+import {
+	getAuth,
+	signOut,
+	signInWithEmailAndPassword,
+	onAuthStateChanged,
+	createUserWithEmailAndPassword,
+} from 'https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js';
 import * as Elements from '../viewpage/elements.js';
 import * as Constants from '../model/constants.js';
 import * as Util from '../viewpage/util.js';
 import { routing, ROUTE_PATHNAMES } from './route.js';
 import { initShoppingCart } from '../viewpage/cart_page.js';
+import { DEV } from '../model/constants.js';
+import { readAccountProfile } from '../viewpage/profile_page.js';
+
 const auth = getAuth();
 export let currentUser = null;
 
 export function addEventListeners() {
 	onAuthStateChanged(auth, authStateChanged);
 
-	Elements.formSignIn.addEventListener('submit', async (e) => {
+	Elements.modalSignin.form.addEventListener('submit', async (e) => {
 		e.preventDefault();
 		const email = e.target.email.value;
 		const password = e.target.password.value;
@@ -18,11 +27,11 @@ export function addEventListeners() {
 		const label = Util.disableButton(button);
 		try {
 			const userCredential = await signInWithEmailAndPassword(auth, email, password);
-			Elements.modalSignin.hide();
+			Elements.modalSignin.modal.hide();
 		} catch (error) {
 			const errorCode = error.code;
 			const errorMessage = error.message;
-			Util.info('Sign in error', JSON.stringify(error), Elements.modalSignin);
+			Util.info('Sign in error', JSON.stringify(error), Elements.modalSignin.modal);
 			if (Constants.DEV) {
 				console.log(`error: ${errorCode} | ${errorMessage}`);
 			}
@@ -40,6 +49,32 @@ export function addEventListeners() {
 			}
 		}
 	});
+
+	Elements.modalSignin.showSignupModal.addEventListener('click', () => {
+		Elements.modalSignin.modal.hide();
+		Elements.modalSignup.form.reset();
+		Elements.modalSignup.modal.show();
+	});
+
+	Elements.modalSignup.form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		const email = e.target.email.value;
+		const password = e.target.password.value;
+		const confirmPassword = e.target.passwordConfirm.value;
+
+		if (password != confirmPassword) {
+			window.alert('Passwords do not match!');
+			return;
+		} else {
+			try {
+				await createUserWithEmailAndPassword(auth, email, password);
+				Util.info('Account created!', `You are now signed in as ${email}`, Elements.modalSignup.modal);
+			} catch (e) {
+				if (DEV) console.log(e);
+				Util.info('Failed to create account', JSON.stringify(e), Elements.modalSignup.modal);
+			}
+		}
+	});
 }
 
 async function authStateChanged(user) {
@@ -53,6 +88,7 @@ async function authStateChanged(user) {
 		for (let i = 0; i < menus.length; i++) {
 			menus[i].style.display = 'block';
 		}
+		await readAccountProfile();
 		initShoppingCart();
 		routing(window.location.pathname, window.location.hash);
 	} else {

@@ -1,6 +1,6 @@
 {
 	"hosting": {
-		"site": "a3-p1-austintaylor",
+		"site": "a3-p2-austintaylor",
 		"public": "public",
 		"ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
 		"rewrites": [
